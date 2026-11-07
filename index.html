@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17231f">
+<link rel="manifest" href="manifest.json">
+<title>Türkçe Kolay — разговорный турецкий</title>
+<style>
+:root{--bg:#f5f3ed;--card:#fffefa;--ink:#17231f;--muted:#68736d;--red:#c94b3b;--green:#28765b;--line:#e5e1d7}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+main{max-width:680px;margin:auto;padding:18px 0 34px}.top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 20px}.brand{font-weight:850;font-size:20px;letter-spacing:-.5px}.pill{font-size:12px;border-radius:20px;padding:7px 10px;background:#e5eee8;color:#28634e}
+h1{font-size:29px;line-height:1.12;margin:10px 0 8px;letter-spacing:-1px}p{line-height:1.5}.muted{color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 5px 20px #1b2a2010}
+.tabs{display:flex;gap:8px;overflow:auto;margin:16px 0}.tab,button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;font-size:14px}.tab{background:#eae8e0;color:var(--ink);white-space:nowrap}.tab.active{background:var(--ink);color:white}
+button{background:var(--ink);color:white;cursor:pointer}.secondary{background:#eae8e0;color:var(--ink)}.red{background:var(--red)}button:disabled{opacity:.45}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.1px;color:var(--muted);text-transform:uppercase}.turkish{font-size:26px;font-weight:800;line-height:1.25;margin:8px 0}.translation{color:var(--muted);margin:4px 0 14px}.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button{flex:1;min-width:125px}
+.status{padding:12px;border-radius:14px;background:#f0eee7;font-size:14px;margin-top:12px}.good{background:#e5f2e9;color:#205b40}.bad{background:#fae9e5;color:#8c3026}
+textarea,input{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px;font:inherit;background:white;color:var(--ink);margin:8px 0}textarea{min-height:76px;resize:vertical}
+.chat{display:flex;flex-direction:column;gap:9px;max-height:300px;overflow:auto}.bubble{padding:11px 13px;border-radius:15px;max-width:90%;line-height:1.4;font-size:14px}.bot{background:#efeee8;align-self:flex-start}.me{background:#e2eee7;align-self:flex-end}.bubble small{display:block;color:var(--muted);margin-top:4px}
+.progress{height:8px;background:#e6e3da;border-radius:8px;overflow:hidden}.progress span{display:block;height:100%;background:var(--green);width:0}
+footer{font-size:12px;color:var(--muted);line-height:1.5;margin:20px 4px}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main>
+ <div class="top"><div class="brand">🇹🇷 Türkçe Kolay</div><div class="pill" id="net">Проверка режима…</div></div>
+ <div class="eyebrow">Турецкий через разговор</div>
+ <h1>Говори. Ошибайся. Улучшайся.</h1>
+ <p class="muted">Короткие голосовые диалоги с немедленной коррекцией и разбором после разговора.</p>
+ <div class="tabs">
+  <button class="tab active" data-tab="practice">Диалог</button>
+  <button class="tab" data-tab="sounds">Произношение</button>
+  <button class="tab" data-tab="review">Разбор</button>
+  <button class="tab" data-tab="about">Офлайн</button>
+ </div>
+
+ <section id="practice">
+  <div class="card">
+   <div class="eyebrow">Выбери ситуацию</div>
+   <div class="actions" style="margin-top:10px">
+    <button class="secondary scene" data-scene="cafe">☕ Кафе</button>
+    <button class="secondary scene" data-scene="hotel">🏨 Отель</button>
+    <button class="secondary scene" data-scene="taxi">🚕 Такси</button>
+   </div>
+   <div class="eyebrow" style="margin-top:18px">Ситуация</div>
+   <div id="sceneTitle" style="font-weight:800;font-size:19px;margin:5px 0">В кафе</div>
+   <div class="muted" id="sceneDesc">Ты пришёл в кафе и хочешь заказать напиток.</div>
+  </div>
+  <div class="card">
+   <div class="eyebrow">Собеседник · говорит по-турецки</div>
+   <div class="turkish" id="prompt">Merhaba! Hoş geldiniz. Ne içersiniz?</div>
+   <div class="translation" id="promptRu">Здравствуйте! Добро пожаловать. Что будете пить?</div>
+   <div class="actions">
+    <button class="secondary" id="listen">🔊 Прослушать</button>
+    <button class="red" id="mic">🎙 Ответить голосом</button>
+   </div>
+   <div id="speechStatus" class="status" aria-live="polite">Нажми «Ответить голосом» и произнеси ответ на турецком.</div>
+   <div id="typedFallback" class="hidden">
+    <label for="typed">Если микрофон недоступен, напиши ответ:</label>
+    <input id="typed" placeholder="Например: Bir çay, lütfen.">
+    <button id="sendTyped">Проверить ответ</button>
+   </div>
+   <div id="correction" class="status hidden"></div>
+  </div>
+  <div class="card">
+   <div class="eyebrow">Ход разговора</div>
+   <div class="chat" id="chat"><div class="bubble bot">Merhaba! Hoş geldiniz.<small>Здравствуйте! Добро пожаловать.</small></div></div>
+   <div class="actions" style="margin-top:12px">
+    <button class="secondary" id="next" disabled>Следующий вопрос →</button>
+    <button class="secondary" id="finish">Завершить и разобрать</button>
+   </div>
+  </div>
+ </section>
+
+ <section id="sounds" class="hidden">
+  <div class="card">
+   <div class="eyebrow">Тренировка турецких звуков</div>
+   <h2 style="margin:8px 0">Звуки, которых нет в русском</h2>
+   <p class="muted">Прослушай слово, затем повтори его. Оценка на этой первой версии основана на распознанном тексте, а не на лабораторном анализе акцента.</p>
+   <div id="soundList"></div>
+  </div>
+ </section>
+ <section id="review" class="hidden">
+  <div class="card">
+   <div class="eyebrow">Разбор разговора</div>
+   <h2>Твои результаты</h2>
+   <div id="summary" class="muted">Заверши диалог, чтобы увидеть разбор.</div>
+   <div style="margin:16px 0 7px;font-size:13px;font-weight:700">Успешность ответов</div>
+   <div class="progress"><span id="bar"></span></div>
+   <div id="reviewItems"></div>
+  </div>
+ </section>
+ <section id="about" class="hidden">
+  <div class="card">
+   <div class="eyebrow">Работа без интернета</div>
+   <h2>Что доступно офлайн</h2>
+   <p>После первой загрузки приложения уроки, сценарии, подсказки, текстовая проверка ответов и интерфейс сохраняются на устройстве.</p>
+   <p><b>Важное ограничение iPhone:</b> браузерное распознавание речи Safari может требовать интернет и зависит от версии iOS. Если оно недоступно, приложение предложит ввести ответ текстом. Системная озвучка тоже зависит от наличия турецкого голоса на устройстве.</p>
+   <p>Для гарантированного офлайн-распознавания и точной оценки фонетики понадобится отдельная нативная iOS-версия с загружаемой моделью речи.</p>
+   <div class="status">Подсказка: открой приложение один раз онлайн, затем добавь его на экран «Домой» через меню Safari → «Поделиться» → «На экран Домой».</div>
+  </div>
+ </section>
+ <footer>Первая демонстрационная версия. Диалоги работают по подготовленным сценариям; свободный AI-собеседник и продвинутая фонетическая оценка пока не подключены. Прогресс хранится локально в браузере.</footer>
+</main>
+<script>
+const scenes={
+ cafe:{title:"В кафе",desc:"Ты пришёл в кафе и хочешь заказать напиток.",steps:[
+ {tr:"Merhaba! Hoş geldiniz. Ne içersiniz?",ru:"Здравствуйте! Добро пожаловать. Что будете пить?",answers:["bir çay lütfen","bir kahve lütfen","su lütfen"],ideal:"Bir çay, lütfen.",reply:"Tabii. Başka bir şey ister misiniz?",replyRu:"Конечно. Что-нибудь ещё желаете?",next:["Hayır, teşekkür ederim","Evet, bir su da lütfen"],ideal2:"Hayır, teşekkür ederim.",reply2:"Peki. Hemen getiriyorum.",replyRu2:"Хорошо. Сейчас принесу."},
+ {tr:"Afiyet olsun! Başka bir isteğiniz var mı?",ru:"Приятного аппетита! Что-нибудь ещё?",answers:["hayır teşekkür ederim","hesap lütfen"],ideal:"Hayır, teşekkür ederim.",reply:"Güzel günler!",replyRu:"Хорошего дня!"}]},
+ hotel:{title:"В отеле",desc:"Ты приехал в отель и хочешь заселиться.",steps:[
+ {tr:"Merhaba. Rezervasyonunuz var mı?",ru:"Здравствуйте. У вас есть бронь?",answers:["evet rezervasyonum var","hayır rezervasyon yapmak istiyorum"],ideal:"Evet, rezervasyonum var.",reply:"Hangi isim üzerine?",replyRu:"На какое имя?",},
+ {tr:"Kimliğinizi alabilir miyim?",ru:"Могу я взять ваш документ?",answers:["tabii buyurun","bir dakika lütfen"],ideal:"Tabii, buyurun.",reply:"Teşekkürler. Odanız üçüncü katta.",replyRu:"Спасибо. Ваш номер на третьем этаже."}]},
+ taxi:{title:"В такси",desc:"Ты садишься в такси и называешь место назначения.",steps:[
+ {tr:"Merhaba. Nereye gidiyoruz?",ru:"Здравствуйте. Куда едем?",answers:["havaalanına lütfen","taksim'e gitmek istiyorum","otele lütfen"],ideal:"Havaalanına, lütfen.",reply:"Tamam. Yaklaşık yirmi dakika sürer.",replyRu:"Хорошо. Это займёт примерно двадцать минут."},
+ {tr:"Başka bir yol tercih eder misiniz?",ru:"Предпочитаете другой маршрут?",answers:["hayır bu yol iyi","evet lütfen"],ideal:"Hayır, bu yol iyi.",reply:"Peki, yola çıkıyoruz.",replyRu:"Хорошо, отправляемся."}]}
+};
+let scene="cafe",step=0,history=[],lastRecognized="";
+const $=id=>document.getElementById(id);
+function norm(s){return (s||"").toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[.,!?']/g,"").replace(/\s+/g," ").trim()}
+function current(){return scenes[scene].steps[step]}
+function setPrompt(){let s=current();$("prompt").textContent=s.tr;$("promptRu").textContent=s.ru;$("speechStatus").textContent="Нажми «Ответить голосом» и произнеси ответ на турецком.";$("correction").classList.add("hidden");$("next").disabled=true}
+function speak(t){if(!("speechSynthesis"in window)){alert("Озвучка не поддерживается этим браузером.");return}speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="tr-TR";u.rate=.88;let vs=speechSynthesis.getVoices();let v=vs.find(x=>x.lang.toLowerCase().startsWith("tr"));if(v)u.voice=v;speechSynthesis.speak(u)}
+function addBubble(who,tr,ru){let d=document.createElement("div");d.className="bubble "+who;d.textContent=tr;let sm=document.createElement("small");sm.textContent=ru||"";d.appendChild(sm);$("chat").appendChild(d);$("chat").scrollTop=$("chat").scrollHeight}
+function evaluate(text){
+ let s=current(),n=norm(text), candidates=s.answers.map(norm);
+ let exact=candidates.includes(n), partial=candidates.some(a=>a===n||a.includes(n)||n.includes(a));
+ let score=exact?100:(partial?75:0);
+ let ideal=s.ideal;
+ history.push({heard:text,ideal,score,scene:scenes[scene].title});
+ lastRecognized=text;
+ $("speechStatus").textContent="Распознано: "+text;
+ $("correction").className="status "+(score>=75?"good":"bad");
+ $("correction").innerHTML=score>=75?"Хорошо! Фраза подходит по смыслу.":"Попробуй ещё раз. Более подходящий вариант: <b>"+ideal+"</b>";
+ if(score<75){$("speechStatus").textContent+=" · Обрати внимание на порядок слов и окончания."}
+ addBubble("me",text,score>=75?"Ответ принят":"Попытка — разберём ошибку");
+ $("next").disabled=false;
+}
+function listen(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){$("typedFallback").classList.remove("hidden");$("speechStatus").textContent="Распознавание речи не поддерживается или недоступно. Можно ответить текстом.";return}
+ let r=new SR();r.lang="tr-TR";r.interimResults=false;r.maxAlternatives=3;
+ $("speechStatus").textContent="Слушаю… Говори чётко.";
+ r.onresult=e=>evaluate(e.results[0][0].transcript);
+ r.onerror=e=>{$("speechStatus").textContent="Микрофон/распознавание недоступны ("+e.error+"). Попробуй ещё раз или введи ответ текстом.";$("typedFallback").classList.remove("hidden")};
+ r.onend=()=>{};try{r.start()}catch(e){$("typedFallback").classList.remove("hidden")}
+}
+function next(){
+ let s=current();addBubble("bot",s.reply,s.replyRu);
+ if(step+1<scenes[scene].steps.length){step++;setPrompt()}
+ else{$("speechStatus").textContent="Сценарий завершён. Нажми «Завершить и разобрать»."; $("next").disabled=true}
+}
+function finish(){
+ document.querySelector('[data-tab="review"]').click();
+ let avg=history.length?Math.round(history.reduce((a,x)=>a+x.score,0)/history.length):0;
+ $("summary").textContent=history.length?`Ответов: ${history.length}. Средний результат совпадения: ${avg}%. Это ориентир по тексту распознавания, не оценка акцента.`:"Пока нет ответов. Пройди диалог, чтобы получить разбор.";
+ $("bar").style.width=avg+"%";$("reviewItems").innerHTML="";
+ history.slice().reverse().forEach(x=>{let d=document.createElement("div");d.className="status";d.innerHTML=`<b>${x.scene}</b><br>Ты сказал: ${x.heard}<br>Рекомендуемый вариант: <b>${x.ideal}</b><br>Текстовое совпадение: ${x.score}%`; $("reviewItems").appendChild(d)});
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));["practice","sounds","review","about"].forEach(id=>$(id).classList.toggle("hidden",id!==b.dataset.tab))});
+document.querySelectorAll(".scene").forEach(b=>b.onclick=()=>{scene=b.dataset.scene;step=0;history=[];$("sceneTitle").textContent=scenes[scene].title;$("sceneDesc").textContent=scenes[scene].desc;$("chat").innerHTML="";addBubble("bot",current().tr,current().ru);setPrompt()});
+$("listen").onclick=()=>speak(current().tr);$("mic").onclick=listen;$("next").onclick=next;$("finish").onclick=finish;
+$("sendTyped").onclick=()=>{let t=$("typed").value.trim();if(t)evaluate(t)};
+const sounds=[["ı","kız","девушка"],["ö","göz","глаз"],["ü","üzüm","виноград"],["ş","şeker","сахар"],["ç","çay","чай"],["ğ","dağ","гора"]];
+sounds.forEach(([letter,word,ru])=>{let d=document.createElement("div");d.className="status";d.innerHTML=`<b style="font-size:22px">${letter}</b> — <b>${word}</b> — ${ru} <button class="secondary" style="float:right;padding:7px 10px" data-word="${word}">🔊</button>`;$("soundList").appendChild(d)});
+$("soundList").onclick=e=>{let w=e.target.dataset.word;if(w)speak(w)};
+$("net").textContent=navigator.onLine?"Онлайн":"Офлайн";window.addEventListener("online",()=>$("net").textContent="Онлайн");window.addEventListener("offline",()=>$("net").textContent="Офлайн");
+if("serviceWorker"in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+</body></html>
